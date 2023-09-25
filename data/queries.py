@@ -53,7 +53,7 @@ def get_books(book_id=None, search_param=None):
             books = BOOKS.aggregate(aggregate_operations)
             return books.next()
 
-        if search_param:
+        elif search_param:
             aggregate_operations.append({
                 '$match': {
                     '$or': [
@@ -93,7 +93,7 @@ def get_authors(author_id=None, search_param=None):
             authors = AUTHORS.aggregate(aggregate_operations)
             return authors.next()
 
-        if search_param:
+        elif search_param:
             aggregate_operations.append({
                 '$match': {'full_name': {'$regex': search_param, '$options': 'i'}}
             })

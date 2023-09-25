@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from data import queries
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
+CORS(app)
 
 
 def response_error(message):
