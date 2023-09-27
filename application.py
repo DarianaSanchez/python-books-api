@@ -20,6 +20,12 @@ footer_text = '</body>\n</html>'
 # EB looks for an 'application' callable by default.
 application = Flask(__name__)
 
+
+@application.route("/test")
+def home():
+    return '<h3>Books API</h3>'
+
+
 # add a rule for the index page.
 application.add_url_rule('/', 'index', (lambda: header_text +
                                         say_hello() + instructions + footer_text))
