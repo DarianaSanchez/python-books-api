@@ -1,2 +1,54 @@
 ## Python Books API
-API de libros para challenge Zarego
+
+Backend API application to perform CRUD operations on books and authors
+
+
+### Live Demo
+
+[https://us-east-2.console.aws.amazon.com/](https://us-east-2.console.aws.amazon.com/)
+
+
+### Technical Breakdown
+
+- Language: Python 3.11.3
+- API Framework: Flask API
+- Testing Framework: Pytest
+- Database: MongoDB
+
+
+### Setup
+
+1. Make sure you have Python and PIP installed:
+
+&emsp;&emsp;[Download it from python.org](https://www.python.org/downloads/)
+
+2. Install packages and dependencies of the application:
+
+```
+pip install -r requirements.txt
+```
+
+3. Start a local API server at `http://localhost:4000`:
+
+```
+python main.py
+```
+
+&emsp;&emsp;
+NOTE: To setup and populate your database you can run this command inside **data** directory:
+
+```
+python setup.py
+```
+
+NOTE: To run tests you can run this command inside **tests** directory:
+
+```
+pytest api-tests.py
+```
+
+
+&emsp;&emsp;
+#### Developer
+
+[Dariana Sanchez](https://www.linkedin.com/in/darianamsanchez/)
