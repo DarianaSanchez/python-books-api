@@ -120,5 +120,5 @@ def put_author(id):
         return response_error(str(ex))
 
 
-if __name__ == '__main__':
-    app.run(debug=True, port=4000)
+# if __name__ == '__main__':
+#     app.run(debug=True, port=4000)
