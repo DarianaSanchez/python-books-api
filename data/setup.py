@@ -16,7 +16,7 @@ MONGODB_DATABASE = MONGODB_CLIENT[os.getenv('MONGODB_DATABASE_NAME')]
 BOOK_SCHEMA = {
     '$jsonSchema': {
         'bsonType': 'object',
-        'required': ['title', 'isbn'],
+        'required': ['title'],
         'properties': {
             'title': {'bsonType': 'string'},
             'isbn': {'bsonType': 'string'},
