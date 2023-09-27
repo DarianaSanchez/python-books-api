@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# TODO: crear clase base para implementar metodos CRUD y que entidades la hereden
+# TODO: implement pagination
+# TODO: create base class to implement CRUD methods so entities can inherit it
 USERNAME = os.getenv('MONGODB_USER')
 PASSWORD = os.getenv('MONGODB_PASSWORD')
 MONGODB_CLIENT = MongoClient(
@@ -37,7 +38,7 @@ def get_books(book_id=None, search_param=None):
                 'shortDescription': 1,
                 'categories': 1,
                 'authors': {
-                    '_id': {'$toString': '$_id'},
+                    '_id': 1,
                     'full_name': 1,
                 },
             },
@@ -59,8 +60,6 @@ def get_books(book_id=None, search_param=None):
                     '$or': [
                         {'title': {'$regex': search_param, '$options': 'i'}},
                         {'isbn': {'$regex': search_param, '$options': 'i'}},
-                        {'authors.last_name': {
-                            '$regex': search_param, '$options': 'i'}},
                     ]
                 }
             })
@@ -108,8 +107,8 @@ def add_book(book_vals):
     BOOKS = MONGODB_DATABASE.books
 
     try:
-        if 'authors' in book_vals.keys():
-            author_ids = [ObjectId(id) for id in book_vals.get('authors', [])]
+        if 'authors' in book_vals.keys() and book_vals['authors']:
+            author_ids = [ObjectId(id) for id in book_vals['authors']]
             book_vals.update({'authors': author_ids})
 
         return str(BOOKS.insert_one(book_vals).inserted_id)
@@ -135,8 +134,8 @@ def update_book(book_id, book_vals):
     BOOKS = MONGODB_DATABASE.books
 
     try:
-        if 'authors' in book_vals.keys():
-            author_ids = [ObjectId(id) for id in book_vals.get('authors', [])]
+        if 'authors' in book_vals.keys() and book_vals['authors']:
+            author_ids = [ObjectId(id) for id in book_vals['authors']]
             book_vals.update({'authors': author_ids})
 
         BOOKS.update_one(

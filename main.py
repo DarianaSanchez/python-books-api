@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from data import queries
 
+import json
+from bson import json_util
+
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 CORS(app)
@@ -29,7 +32,7 @@ def get_books():
         else:
             books = queries.get_books()
 
-        return jsonify(books), 200
+        return json.loads(json_util.dumps(books)), 200
 
     except Exception as ex:
         return response_error(str(ex))
@@ -39,7 +42,10 @@ def get_books():
 def get_single_book(id):
     try:
         book = queries.get_books(book_id=id)
-        return jsonify(book), 200
+
+        # TODO: tentative fix to '$toString for multiple _id in $project' issue
+        return json.loads(json_util.dumps(book)), 200
+
     except Exception as ex:
         return response_error(str(ex))
 
