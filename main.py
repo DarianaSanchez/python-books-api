@@ -24,15 +24,13 @@ def home():
 @app.route('/books', methods=['GET'])
 def get_books():
     try:
-        books = []
         search = request.args.get('search_param', None)
-
-        if search:
-            books = queries.get_books(search_param=search)
-        else:
-            books = queries.get_books()
-
-        return json.loads(json_util.dumps(books)), 200
+        limit = request.args.get('limit', None)
+        books = queries.get_books(
+            search_param=search,
+            limit=limit,
+        )
+        return json.loads(json_util.dumps(books or [])), 200
 
     except Exception as ex:
         return response_error(str(ex))
@@ -44,7 +42,7 @@ def get_single_book(id):
         book = queries.get_books(book_id=id)
 
         # TODO: tentative fix to '$toString for multiple _id in $project' issue
-        return json.loads(json_util.dumps(book)), 200
+        return json.loads(json_util.dumps(book or {})), 200
 
     except Exception as ex:
         return response_error(str(ex))
@@ -53,15 +51,13 @@ def get_single_book(id):
 @app.route('/authors', methods=['GET'])
 def get_authors():
     try:
-        authors = []
         search = request.args.get('search_param', None)
-
-        if search:
-            authors = queries.get_authors(search_param=search)
-        else:
-            authors = queries.get_authors()
-
-        return jsonify(authors), 200
+        limit = request.args.get('limit', None)
+        authors = queries.get_authors(
+            search_param=search,
+            limit=limit,
+        )
+        return jsonify(authors or []), 200
 
     except Exception as ex:
         return response_error(str(ex))
@@ -71,7 +67,7 @@ def get_authors():
 def get_single_author(id):
     try:
         author = queries.get_authors(author_id=id)
-        return jsonify(author), 200
+        return jsonify(author or {}), 200
     except Exception as ex:
         return response_error(str(ex))
 

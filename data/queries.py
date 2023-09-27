@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
+import datetime
 import os
 from dotenv import load_dotenv
 
@@ -17,7 +18,7 @@ MONGODB_CLIENT = MongoClient(
 MONGODB_DATABASE = MONGODB_CLIENT[os.getenv('MONGODB_DATABASE_NAME')]
 
 
-def get_books(book_id=None, search_param=None):
+def get_books(**kwargs):
     BOOKS = MONGODB_DATABASE.books
     aggregate_operations = [
         {
@@ -37,29 +38,36 @@ def get_books(book_id=None, search_param=None):
                 'thumbnailUrl': 1,
                 'shortDescription': 1,
                 'categories': 1,
+                'createdOn': 1,
+                'updatedOn': 1,
                 'authors': {
                     '_id': 1,
                     'full_name': 1,
                 },
             },
         },
-        {'$limit': 200},
+        {'$sort': {'createdOn': -1}},
+        {'$limit': kwargs.get('limit') or 400},
     ]
 
     try:
-        if book_id:
+        if kwargs.get('book_id'):
             aggregate_operations.append({
-                '$match': {'_id': book_id}
+                '$match': {'_id': kwargs.get('book_id')}
             })
             books = BOOKS.aggregate(aggregate_operations)
             return books.next()
 
-        elif search_param:
+        elif kwargs.get('search_param'):
             aggregate_operations.append({
                 '$match': {
                     '$or': [
-                        {'title': {'$regex': search_param, '$options': 'i'}},
-                        {'isbn': {'$regex': search_param, '$options': 'i'}},
+                        {'title': {
+                            '$regex': kwargs.get('search_param'), '$options': 'i'
+                        }},
+                        {'isbn': {
+                            '$regex': kwargs.get('search_param'), '$options': 'i'
+                        }},
                     ]
                 }
             })
@@ -70,7 +78,7 @@ def get_books(book_id=None, search_param=None):
         print(f'Fallo consultando libros. Error: {ex}')
 
 
-def get_authors(author_id=None, search_param=None):
+def get_authors(**kwargs):
     AUTHORS = MONGODB_DATABASE.authors
     aggregate_operations = [
         {
@@ -79,22 +87,29 @@ def get_authors(author_id=None, search_param=None):
                 'first_name': 1,
                 'last_name': 1,
                 'full_name': 1,
+                'created_on': 1,
+                'updated_on': 1,
             },
         },
-        {'$limit': 200},
+        {'$sort': {'created_on': -1}},
+        {'$limit': kwargs.get('limit') or 400},
     ]
 
     try:
-        if author_id:
+        if kwargs.get('author_id'):
             aggregate_operations.append({
-                '$match': {'_id': author_id}
+                '$match': {'_id': kwargs.get('author_id')}
             })
             authors = AUTHORS.aggregate(aggregate_operations)
             return authors.next()
 
-        elif search_param:
+        elif kwargs.get('search_param'):
             aggregate_operations.append({
-                '$match': {'full_name': {'$regex': search_param, '$options': 'i'}}
+                '$match': {
+                    'full_name': {
+                        '$regex': kwargs.get('search_param'), '$options': 'i'
+                    }
+                }
             })
 
         return list(AUTHORS.aggregate(aggregate_operations))
@@ -109,7 +124,12 @@ def add_book(book_vals):
     try:
         if 'authors' in book_vals.keys() and book_vals['authors']:
             author_ids = [ObjectId(id) for id in book_vals['authors']]
-            book_vals.update({'authors': author_ids})
+            book_vals.update({
+                'pageCount': 0,
+                'authors': author_ids,
+                'createdOn': datetime.datetime.now(),
+                'updatedOn': datetime.datetime.now(),
+            })
 
         return str(BOOKS.insert_one(book_vals).inserted_id)
 
@@ -123,7 +143,11 @@ def add_author(author_vals):
 
     try:
         full_name = f"{author_vals.get('first_name', '')} {author_vals.get('last_name', '')}"
-        author_vals.update({'full_name': full_name})
+        author_vals.update({
+            'full_name': full_name,
+            'created_on': datetime.datetime.now(),
+            'updated_on': datetime.datetime.now(),
+        })
         return str(AUTHORS.insert_one(author_vals).inserted_id)
 
     except Exception as ex:
@@ -136,7 +160,10 @@ def update_book(book_id, book_vals):
     try:
         if 'authors' in book_vals.keys() and book_vals['authors']:
             author_ids = [ObjectId(id) for id in book_vals['authors']]
-            book_vals.update({'authors': author_ids})
+            book_vals.update({
+                'authors': author_ids,
+                'updatedOn': datetime.datetime.now(),
+            })
 
         BOOKS.update_one(
             {'_id': ObjectId(book_id)},
@@ -151,6 +178,9 @@ def update_author(author_id, author_vals):
     AUTHORS = MONGODB_DATABASE.authors
 
     try:
+        author_vals.update({
+            'updated_on': datetime.datetime.now(),
+        })
         AUTHORS.update_one(
             {'_id': ObjectId(author_id)},
             {'$set': author_vals},

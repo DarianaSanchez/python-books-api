@@ -2,6 +2,7 @@ from pymongo import MongoClient
 
 import sys
 import json
+import datetime
 import os
 from dotenv import load_dotenv
 
@@ -23,6 +24,8 @@ BOOK_SCHEMA = {
             'pageCount': {'bsonType': 'number'},
             'thumbnailUrl': {'bsonType': 'string'},
             'shortDescription': {'bsonType': 'string'},
+            'createdOn': {'bsonType': 'date'},
+            'updatedOn': {'bsonType': 'date'},
             'authors': {
                 'bsonType': 'array',
                 'items': {'bsonType': 'objectId'}
@@ -42,6 +45,8 @@ AUTHOR_SCHEMA = {
             'first_name': {'bsonType': 'string'},
             'last_name': {'bsonType': 'string'},
             'full_name': {'bsonType': 'string'},
+            'created_on': {'bsonType': 'date'},
+            'updated_on': {'bsonType': 'date'},
         },
     }
 }
@@ -79,6 +84,8 @@ def insertAuthor(author_names):
                 'first_name': ' '.join(name_parts[:name_half]),
                 'last_name': ' '.join(name_parts[name_half:]),
                 'full_name': name,
+                'created_on': datetime.datetime.now(),
+                'updated_on': datetime.datetime.now(),
             })
 
     if len(records):
@@ -97,7 +104,11 @@ def populate_database():
             records = json.load(file_content)
 
             for record in records:
-                record.update({'authors': insertAuthor(record.get('authors'))})
+                record.update({
+                    'authors': insertAuthor(record.get('authors')),
+                    'createdOn': datetime.datetime.now(),
+                    'updatedOn': datetime.datetime.now(),
+                })
 
         result = MONGODB_DATABASE.books.insert_many(records)
 

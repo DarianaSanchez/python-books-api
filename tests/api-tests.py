@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-API_URL = os.getenv('API_URL')
+API_URL = os.getenv('API_BASE_URL')
 
 BOOK_JSON_FIELDS = ['_id', 'title', 'isbn', 'authors']
 AUTHOR_JSON_FIELDS = ['_id', 'full_name']
