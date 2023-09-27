@@ -1,43 +1,124 @@
-from flask import Flask
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from data import queries
 
-# print a nice greeting.
+import json
+from bson import json_util
 
-
-def say_hello(username="World"):
-    return '<p>Hello %s!</p>\n' % username
-
-
-# some bits of text for the page.
-header_text = '''
-    <html>\n<head> <title>EB Flask Test</title> </head>\n<body>'''
-instructions = '''
-    <p><em>Hint</em>: This is a RESTful web service! Append a username
-    to the URL (for example: <code>/Thelonious</code>) to say hello to
-    someone specific.</p>\n'''
-home_link = '<p><a href="/">Back</a></p>\n'
-footer_text = '</body>\n</html>'
-
-# EB looks for an 'application' callable by default.
 application = Flask(__name__)
+application.config['JSON_SORT_KEYS'] = False
+CORS(application)
 
 
-@application.route("/test")
+def response_error(message):
+    return jsonify({'error': message}), 500
+
+
+@application.route("/")
+@application.route("/home")
+@application.route("/index")
 def home():
     return '<h3>Books API</h3>'
 
 
-# add a rule for the index page.
-application.add_url_rule('/', 'index', (lambda: header_text +
-                                        say_hello() + instructions + footer_text))
+@application.route('/books', methods=['GET'])
+def get_books():
+    try:
+        search = request.args.get('search_param', None)
+        limit = request.args.get('limit', None)
+        books = queries.get_books(
+            search_param=search,
+            limit=limit,
+        )
+        return json.loads(json_util.dumps(books or [])), 200
 
-# add a rule when the page is accessed with a name appended to the site
-# URL.
-application.add_url_rule('/<username>', 'hello', (lambda username:
-                                                  header_text + say_hello(username) + home_link + footer_text))
+    except Exception as ex:
+        return response_error(str(ex))
 
-# run the app.
-if __name__ == "__main__":
-    # Setting debug to True enables debug output. This line should be
-    # removed before deploying a production app.
-    # application.debug = True
+
+@application.route('/book/<string:id>', methods=['GET'])
+def get_single_book(id):
+    try:
+        book = queries.get_books(book_id=id)
+
+        # TODO: tentative fix to '$toString for multiple _id in $project' issue
+        return json.loads(json_util.dumps(book or {})), 200
+
+    except Exception as ex:
+        return response_error(str(ex))
+
+
+@application.route('/authors', methods=['GET'])
+def get_authors():
+    try:
+        search = request.args.get('search_param', None)
+        limit = request.args.get('limit', None)
+        authors = queries.get_authors(
+            search_param=search,
+            limit=limit,
+        )
+        return jsonify(authors or []), 200
+
+    except Exception as ex:
+        return response_error(str(ex))
+
+
+@application.route('/author/<string:id>', methods=['GET'])
+def get_single_author(id):
+    try:
+        author = queries.get_authors(author_id=id)
+        return jsonify(author or {}), 200
+    except Exception as ex:
+        return response_error(str(ex))
+
+
+@application.route('/book', methods=['POST'])
+def post_book():
+    try:
+        book_id = queries.add_book(request.json)
+        return jsonify({
+            '_id': book_id,
+            'message': 'Book | POST request successful',
+        }), 201
+    except Exception as ex:
+        return response_error(str(ex))
+
+
+@application.route('/author', methods=['POST'])
+def post_author():
+    try:
+        author_id = queries.add_author(request.json)
+        return jsonify({
+            '_id': author_id,
+            'message': 'Author | POST request successful',
+        }), 201
+    except Exception as ex:
+        return response_error(str(ex))
+
+
+@application.route('/book/<string:id>', methods=['PUT'])
+def put_book(id):
+    try:
+        queries.update_book(id, request.json)
+        return jsonify({
+            '_id': id,
+            'message': 'Book | PUT request successful',
+        }), 200
+    except Exception as ex:
+        return response_error(str(ex))
+
+
+@application.route('/author/<string:id>', methods=['PUT'])
+def put_author(id):
+    try:
+        queries.update_author(id, request.json)
+        return jsonify({
+            '_id': id,
+            'message': 'Author | PUT request successful',
+        }), 200
+    except Exception as ex:
+        return response_error(str(ex))
+
+
+if __name__ == '__main__':
     application.run()
