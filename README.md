@@ -5,7 +5,7 @@ Backend API application to perform CRUD operations on books and authors
 
 ### Live Demo
 
-[https://us-east-2.console.aws.amazon.com/](https://us-east-2.console.aws.amazon.com/)
+[http://python-books-api-env.eba-m6ybttk3.us-east-2.elasticbeanstalk.com](http://python-books-api-env.eba-m6ybttk3.us-east-2.elasticbeanstalk.com)
 
 
 ### Technical Breakdown
